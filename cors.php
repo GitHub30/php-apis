@@ -1,4 +1,7 @@
 <?php
+/**
+ * /cors.php?url=https://example.com
+ */
 set_time_limit(0);
 
 while (ob_get_level() > 0) {
