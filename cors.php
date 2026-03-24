@@ -1,6 +1,8 @@
 <?php
+
 /**
  * /cors.php?url=https://example.com
+ * 
  */
 set_time_limit(0);
 
@@ -19,7 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-function header_function($ch, $header) {
+function header_function($ch, $header)
+{
     $len = strlen($header);
     $trimmed = trim($header);
     if (empty($trimmed)) {
