@@ -11,8 +11,8 @@ $context = stream_context_create([
     'ssl' => [
         'capture_peer_cert' => true,
         'capture_peer_cert_chain' => true,
-        'verify_peer' => true,
-        'verify_peer_name' => true,
+        'verify_peer' => false,
+        'verify_peer_name' => false,
     ],
 ]);
 
@@ -55,7 +55,7 @@ $validTo = $peer_certificate['validTo_time_t'] ?? 0;
 $now = time();
 
 $result = [
-    'host' => $host,
+    'hostname' => $hostname,
     'subject' => $peer_certificate['subject'] ?? null,
     'issuer' => $peer_certificate['issuer'] ?? null,
     'serialNumber' => $peer_certificate['serialNumberHex'] ?? null,
