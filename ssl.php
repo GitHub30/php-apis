@@ -48,37 +48,33 @@ if (!$fp) {
 }
 
 $params = stream_context_get_params($fp);
-$peerCertResource = $params['options']['ssl']['peer_certificate'];
-$peer_certificate = openssl_x509_parse($peerCertResource);
+$peer_certificate = $params['options']['ssl']['peer_certificate'];
+$parsed_peer_certificate = openssl_x509_parse($peer_certificate);
 
-// --- SHA1 Fingerprint ---
-openssl_x509_export($peerCertResource, $certPem);
+openssl_x509_export($peer_certificate, $certPem);
 $certDer = '';
-openssl_x509_export($peerCertResource, $certPem);
+openssl_x509_export($peer_certificate, $certPem);
 $certDer = base64_decode(
     str_replace(["\r", "\n", '-----BEGIN CERTIFICATE-----', '-----END CERTIFICATE-----'], '', $certPem)
 );
 $sha1Thumbprint = strtoupper(sha1($certDer));
 
-// --- Key Length ---
-$pubKey = openssl_pkey_get_details(openssl_pkey_get_public($peerCertResource));
+$pubKey = openssl_pkey_get_details(openssl_pkey_get_public($peer_certificate));
 $keyLength = $pubKey['bits'] ?? null;
 
 fclose($fp);
 
-// --- Common Name & SAN ---
-$commonName = $peer_certificate['subject']['CN'] ?? null;
-$san = $peer_certificate['extensions']['subjectAltName'] ?? null;
+$commonName = $parsed_peer_certificate['subject']['CN'] ?? null;
+$san = $parsed_peer_certificate['extensions']['subjectAltName'] ?? null;
 $sanList = $san ? array_map('trim', explode(',', str_replace('DNS:', '', $san))) : [];
 
-// --- Certificate Name Match ---
 $certMatchesHostname = false;
 foreach ($sanList as $name) {
     if ($name === $hostname) {
         $certMatchesHostname = true;
         break;
     }
-    // ワイルドカード証明書チェック (e.g. *.example.com)
+
     if (str_starts_with($name, '*.')) {
         $wildcard = substr($name, 2);
         if (str_ends_with($hostname, $wildcard) && substr_count($hostname, '.') === substr_count($name, '.')) {
@@ -90,8 +86,8 @@ foreach ($sanList as $name) {
 
 $parsed_peer_certificate_chain = [];
 if (!empty($params['options']['ssl']['peer_certificate_chain'])) {
-    foreach ($params['options']['ssl']['peer_certificate_chain'] as $chainCert) {
-        $parsed = openssl_x509_parse($chainCert);
+    foreach ($params['options']['ssl']['peer_certificate_chain'] as $peer_certificate_chain) {
+        $parsed = openssl_x509_parse($peer_certificate_chain);
         $parsed_peer_certificate_chain[] = [
             'subject' => $parsed['subject']['CN'] ?? ($parsed['subject']['O'] ?? null),
             'issuer' => $parsed['issuer']['CN'] ?? ($parsed['issuer']['O'] ?? null),
@@ -101,33 +97,9 @@ if (!empty($params['options']['ssl']['peer_certificate_chain'])) {
     }
 }
 
-// --- Expiration ---
-$validFrom_time_t = $peer_certificate['validFrom_time_t'] ?? 0;
-$validTo_time_t = $peer_certificate['validTo_time_t'] ?? 0;
+$validFrom_time_t = $parsed_peer_certificate['validFrom_time_t'] ?? 0;
+$validTo_time_t = $parsed_peer_certificate['validTo_time_t'] ?? 0;
 $now = time();
-$daysRemaining = max(0, (int)(($validTo_time_t - $now) / 86400));
-$isExpired = $now > $validTo_time_t;
-$isNotYetValid = $now < $validFrom_time_t;
-
-$verifyContext = stream_context_create([
-    'ssl' => [
-        'capture_peer_cert' => true,
-        'verify_peer' => true,
-        'verify_peer_name' => true,
-    ],
-]);
-$verifyFp = @stream_socket_client(
-    "ssl://{$hostname}:443",
-    $vErrno,
-    $vErrstr,
-    10,
-    STREAM_CLIENT_CONNECT,
-    $verifyContext
-);
-$isCorrectlyInstalled = $verifyFp !== false;
-if ($verifyFp) {
-    fclose($verifyFp);
-}
 
 $result = [
     'dns' => [
@@ -138,22 +110,21 @@ $result = [
     'certificate' => [
         'commonName' => $commonName,
         'subjectAlternativeNames' => $sanList,
-        'issuer' => $peer_certificate['issuer']['CN'] ?? ($peer_certificate['issuer']['O'] ?? null),
-        'serialNumber' => $peer_certificate['serialNumberHex'] ?? null,
+        'issuer' => $parsed_peer_certificate['issuer']['CN'] ?? ($parsed_peer_certificate['issuer']['O'] ?? null),
+        'serialNumber' => $parsed_peer_certificate['serialNumberHex'] ?? null,
         'sha1Thumbprint' => $sha1Thumbprint,
         'keyLength' => $keyLength,
-        'signatureAlgorithm' => $peer_certificate['signatureTypeSN'] ?? null,
+        'signatureAlgorithm' => $parsed_peer_certificate['signatureTypeSN'] ?? null,
     ],
     'expiration' => [
         'validFrom' => date('c', $validFrom_time_t),
         'validTo' => date('c', $validTo_time_t),
-        'daysRemaining' => $daysRemaining,
-        'isExpired' => $isExpired,
+        'daysRemaining' => max(0, (int)(($validTo_time_t - $now) / 86400)),
+        'isExpired' => $now > $validTo_time_t,
     ],
     'certificateNameMatch' => $certMatchesHostname,
-    'isCorrectlyInstalled' => $isCorrectlyInstalled,
+    'isCorrectlyInstalled' => !!stream_socket_client("ssl://{$hostname}:443"),
     'chain' => $parsed_peer_certificate_chain,
 ];
 
 echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-
