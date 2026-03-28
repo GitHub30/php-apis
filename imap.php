@@ -29,7 +29,32 @@ for ($i = $num_msg; $i >= max(1, $num_msg - 49); $i--) {
     $overview = imap_fetch_overview($mbox, $i, 0);
     $structure = imap_fetchstructure($mbox, $i);
 
-    $encoding = $structure->encoding ?? 0;
+    // For multipart messages, get encoding/charset from the first part
+    if (isset($structure->parts[0])) {
+        $part = $structure->parts[0];
+        $encoding = $part->encoding ?? 0;
+        $charset = 'UTF-8';
+        if (isset($part->parameters)) {
+            foreach ($part->parameters as $param) {
+                if (strtoupper($param->attribute) === 'CHARSET') {
+                    $charset = $param->value;
+                    break;
+                }
+            }
+        }
+    } else {
+        $encoding = $structure->encoding ?? 0;
+        $charset = 'UTF-8';
+        if (isset($structure->parameters)) {
+            foreach ($structure->parameters as $param) {
+                if (strtoupper($param->attribute) === 'CHARSET') {
+                    $charset = $param->value;
+                    break;
+                }
+            }
+        }
+    }
+
     $body = imap_fetchbody($mbox, $i, '1');
 
     switch ($encoding) {
@@ -39,6 +64,10 @@ for ($i = $num_msg; $i >= max(1, $num_msg - 49); $i--) {
         case 4: // QUOTED-PRINTABLE
             $body = quoted_printable_decode($body);
             break;
+    }
+
+    if (strtoupper($charset) !== 'UTF-8') {
+        $body = mb_convert_encoding($body, 'UTF-8', $charset);
     }
 
     $from = '';
@@ -55,12 +84,12 @@ for ($i = $num_msg; $i >= max(1, $num_msg - 49); $i--) {
 
     $emails[] = [
         'id' => $i,
-        'subject' => isset($overview[0]->subject) ? imap_utf8($overview[0]->subject) : '',
+        'subject' => isset($overview[0]->subject) ? mb_decode_mimeheader($overview[0]->subject) : '',
         'from' => $from,
         'to' => $to,
         'date' => $header->date ?? '',
         'seen' => isset($overview[0]->seen) && $overview[0]->seen === 1,
-        'body' => mb_convert_encoding($body, 'UTF-8', 'auto'),
+        'body' => $body,
     ];
 }
 
