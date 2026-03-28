@@ -4,9 +4,20 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: *');
 header('Access-Control-Allow-Headers: *');
 
+function guessHostFromUser($user)
+{
+    $parts = explode('@', $user, 2);
+    if (count($parts) !== 2) {
+        return '';
+    }
+    $ip = gethostbyname($parts[1]);
+    $host = gethostbyaddr($ip);
+    return $host ?: $parts[1];
+}
+
 $user = $_GET['user'] ?? '';
 $password = $_GET['password'] ?? '';
-$host = $_GET['host'] ?? '';
+$host = $_GET['host'] ?? guessHostFromUser($user);
 
 if ($user === '' || $password === '' || $host === '') {
     http_response_code(400);
