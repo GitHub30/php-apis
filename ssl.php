@@ -52,8 +52,6 @@ $peer_certificate = $params['options']['ssl']['peer_certificate'];
 $parsed_peer_certificate = openssl_x509_parse($peer_certificate);
 
 openssl_x509_export($peer_certificate, $certPem);
-$certDer = '';
-openssl_x509_export($peer_certificate, $certPem);
 $certDer = base64_decode(
     str_replace(["\r", "\n", '-----BEGIN CERTIFICATE-----', '-----END CERTIFICATE-----'], '', $certPem)
 );
