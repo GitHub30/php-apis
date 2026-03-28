@@ -48,6 +48,8 @@ if (!$fp) {
 }
 
 $params = stream_context_get_params($fp);
+fclose($fp);
+
 $peer_certificate = $params['options']['ssl']['peer_certificate'];
 $parsed_peer_certificate = openssl_x509_parse($peer_certificate);
 
@@ -60,7 +62,6 @@ $sha1Thumbprint = strtoupper(sha1($certDer));
 $pubKey = openssl_pkey_get_details(openssl_pkey_get_public($peer_certificate));
 $keyLength = $pubKey['bits'] ?? null;
 
-fclose($fp);
 
 $commonName = $parsed_peer_certificate['subject']['CN'] ?? null;
 $san = $parsed_peer_certificate['extensions']['subjectAltName'] ?? null;
