@@ -22,9 +22,9 @@ if (!$mbox) {
 }
 
 $emails = [];
-$numMessages = imap_num_msg($mbox);
+$num_msg = imap_num_msg($mbox);
 
-for ($i = $numMessages; $i >= max(1, $numMessages - 49); $i--) {
+for ($i = $num_msg; $i >= max(1, $num_msg - 49); $i--) {
     $header = imap_headerinfo($mbox, $i);
     $overview = imap_fetch_overview($mbox, $i, 0);
     $structure = imap_fetchstructure($mbox, $i);
@@ -67,4 +67,4 @@ for ($i = $numMessages; $i >= max(1, $numMessages - 49); $i--) {
 imap_close($mbox);
 
 header('Content-Type: application/json');
-echo json_encode(['count' => $numMessages, 'emails' => $emails], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+echo json_encode(['count' => $num_msg, 'emails' => $emails], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
