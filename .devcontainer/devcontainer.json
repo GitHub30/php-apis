@@ -1,7 +1,6 @@
 {
   "image": "mcr.microsoft.com/devcontainers/php:latest",
   "postCreateCommand": "composer install --no-interaction --no-progress",
-  "postStartCommand": "php -S localhost:8000",
   "customizations": {
     "vscode": {
       "extensions": [
