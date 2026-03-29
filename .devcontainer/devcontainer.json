@@ -4,7 +4,8 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "task.allowAutomaticTasks": "on"
+        "task.allowAutomaticTasks": "on",
+        "git.autofetch": true
       },
       "extensions": [
         "bmewburn.vscode-intelephense-client"
