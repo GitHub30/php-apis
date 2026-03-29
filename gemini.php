@@ -15,7 +15,8 @@ $prompt = $_GET['prompt'] ?? 'Hello';
 try {
     $client = Gemini::client($_GET['api_key']);
     $result = $client->generativeModel(model: $model)->generateContent($prompt);
-    echo $result->text();
+    header('Content-Type: application/json');
+    echo json_encode($result->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 } catch (Exception $e) {
     http_response_code(400);
     echo $e->getMessage();
