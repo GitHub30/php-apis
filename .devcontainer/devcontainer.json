@@ -3,6 +3,9 @@
   "postCreateCommand": "composer install --no-interaction --no-progress",
   "customizations": {
     "vscode": {
+      "settings": {
+        "task.allowAutomaticTasks": "on"
+      },
       "extensions": [
         "bmewburn.vscode-intelephense-client"
       ]
