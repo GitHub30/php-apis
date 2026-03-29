@@ -1,0 +1,12 @@
+{
+  "name": "PHP",
+  "image": "mcr.microsoft.com/devcontainers/php:latest",
+  "postCreateCommand": "composer install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bmewburn.vscode-intelephense-client"
+      ]
+    }
+  }
+}
