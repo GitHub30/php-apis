@@ -40,16 +40,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             http_response_code(404);
         }
     } else {
-        $files = ftp_nlist($ftp, $_GET['path'] ?? '.');
-        if (!$files) {
-            header('Content-Type: application/json');
-            echo json_encode($files, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        }
+        header('Content-Type: application/json');
+        echo json_encode(ftp_mlsd($ftp, $_GET['directory'] ?? '.'), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 } else if (in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PUT'])) {
-    if (!ftp_put($ftp, $_GET['filename'], 'php://input')) {
-        http_response_code(500);
-        exit;
+    if ($_FILES) {
+        foreach ($_FILES as $file) {
+            if (!ftp_put($ftp, $file['name'], $file['tmp_name'])) {
+                http_response_code(500);
+            }
+        }
+    } else if (isset($_GET['filename'])) {
+        if (!ftp_put($ftp, $_GET['filename'], 'php://input')) {
+            http_response_code(500);
+        }
     }
 } else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     if (!ftp_delete($ftp, $_GET['filename'])) {
