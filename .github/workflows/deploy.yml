@@ -16,3 +16,15 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+      - uses: appleboy/ssh-action@v1
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: SSH_HOST
+          script: |
+            cd $SSH_HOST/public_html/php-apis
+            composer install --no-dev --optimize-autoloader --classmap-authoritative --no-interaction --no-progress --prefer-dist
