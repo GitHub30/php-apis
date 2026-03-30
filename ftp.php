@@ -19,7 +19,7 @@ function guessHostFromUsername($username)
     return $parts[1];
 }
 
-$ftp = ftp_connect($_GET['hostname'] ?? guessHostFromUsername($_GET['username']));
+$ftp = ftp_connect($_GET['hostname'] ?? guessHostFromUsername($_GET['username']), 10021);
 if (!$ftp) {
     http_response_code(400);
     exit;
@@ -35,6 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $contentType = mime_content_type($_GET['filename']);
         if ($contentType) {
             header("Content-Type: $contentType");
+            // Download multi byte filenames with correct encoding
+            header("Content-Disposition: attachment; filename*=UTF-8''" . rawurlencode($_GET['filename']));
         }
         if (!ftp_get($ftp, 'php://output', $_GET['filename'])) {
             http_response_code(404);

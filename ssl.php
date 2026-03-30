@@ -122,7 +122,7 @@ $result = [
         'isExpired' => $now > $validTo_time_t,
     ],
     'certificateNameMatch' => $certMatchesHostname,
-    'isCorrectlyInstalled' => !!stream_socket_client("ssl://{$hostname}:443"),
+    'isCorrectlyInstalled' => !!@stream_socket_client("ssl://{$hostname}:443"),
     'chain' => $parsed_peer_certificate_chain,
 ];
 
