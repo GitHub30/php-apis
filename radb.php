@@ -8,7 +8,7 @@ if (filter_var($ip, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)) {
     $ip = gethostbyname($ip);
 }
 
-if (!$ip || !filter_var($ip, FILTER_VALIDATE_IP)) {
+if (!$ip) {
     http_response_code(400);
     exit;
 }
