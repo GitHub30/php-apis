@@ -32,7 +32,7 @@ $context = stream_context_create([
     ],
 ]);
 
-$fp = stream_socket_client(
+$fp = @stream_socket_client(
     "ssl://{$hostname}:443",
     $error_code,
     $error_message,

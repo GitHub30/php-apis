@@ -13,5 +13,5 @@ header('Content-Type: application/json');
 echo json_encode([
     'hostname' => $_GET['hostname'],
     'gethostbyname' => $ip,
-    'gethostbyaddr' => gethostbyaddr($ip),
+    'gethostbyaddr' => @gethostbyaddr($ip),
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
