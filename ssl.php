@@ -104,6 +104,7 @@ $result = [
     'dns' => [
         'resolved' => $dnsResolved,
         'ip' => $dnsResolved ? $ip : null,
+        'host' => $dnsResolved ? gethostbyaddr($ip) : null,
         'httpServerHeader' => $serverHeader,
     ],
     'certificate' => [
