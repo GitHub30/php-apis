@@ -103,8 +103,8 @@ $now = time();
 $result = [
     'dns' => [
         'resolved' => $dnsResolved,
-        'ip' => $dnsResolved ? $ip : null,
-        'host' => $dnsResolved ? gethostbyaddr($ip) : null,
+        'gethostbyname' => $dnsResolved ? $ip : null,
+        'gethostbyaddr' => $dnsResolved ? gethostbyaddr($ip) : null,
         'httpServerHeader' => $serverHeader,
     ],
     'certificate' => [
